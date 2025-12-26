@@ -1,0 +1,6 @@
+rootProject.name = 'stocat-auth'
+include 'auth-api'
+
+include 'auth-redis'
+include 'auth-mysql'
+include 'auth-core'
