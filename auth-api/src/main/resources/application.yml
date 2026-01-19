@@ -2,7 +2,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: auth-api
 
 spring:
   application:
@@ -26,6 +29,4 @@ jwt:
   # Secret is provided by ConsulJwtSecretProvider (KV), not from YAML
   access-exp-minutes: 15
   refresh-exp-days: 7
-
-
 
