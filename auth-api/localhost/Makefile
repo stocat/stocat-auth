@@ -7,18 +7,18 @@ MODULE := auth-api
 IMAGE := $(REGISTRY)/$(MODULE):$(TAG)
 NAMESPACE := stocat
 
-.PHONY: help boot docker kind-clean kind-load namespace helm-deploy all
+.PHONY: help boot docker kind-clean kind-load namespace helm-deploy helm-delete clean all
 help:
-	@echo "Local targets: boot, docker, kind-clean, kind-load, namespace, helm-deploy, all"
+	@echo "Local targets: boot, docker, kind-clean, kind-load, namespace, helm-deploy, helm-delete, all"
 
 boot:
 	$(GRADLE) :$(MODULE):bootJar
 
-docker: boot
+docker:
 	docker build \
 		--build-arg OTEL_AGENT_VERSION=$(OTEL_AGENT_VERSION) \
 		-t $(IMAGE) \
-		-f ../Dockerfile ..
+		-f ../Dockerfile ../..
 
 kind-clean:
 	@if kind get clusters | grep -qx "$(KIND_CLUSTER)"; then \
@@ -43,4 +43,8 @@ helm-deploy: kind-load namespace
 		-f ../../helm/local.values.yaml \
 		-f ../../helm/services/$(MODULE)/local.values.yaml
 
+helm-delete:
+	helm uninstall $(MODULE) --namespace $(NAMESPACE) || true
+
 all: helm-deploy
+clean: helm-delete

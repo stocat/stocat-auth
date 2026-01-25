@@ -1,21 +1,25 @@
 # syntax=docker/dockerfile:1.7
 
-# Build runs outside the image; this Dockerfile only packages the JAR and OTEL agent.
-# Expect the application JAR to be present at auth-api/build/libs/*.jar before docker build.
+FROM eclipse-temurin:21-jdk AS build
+
+WORKDIR /workspace
+
+COPY . .
+
+RUN chmod +x ./gradlew
+RUN ./gradlew :auth-api:bootJar
 
 FROM eclipse-temurin:21-jre AS runtime
 
 WORKDIR /app
 
-# Re-declare ARG inside the stage to make it available to instructions in this stage
 ARG OTEL_AGENT_VERSION=2.8.0
 
-# Prepare location for the agent and add it
 RUN mkdir -p /opt/otel
 ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar /opt/otel/opentelemetry-javaagent.jar
 
 # Copy application jar built by Gradle
-COPY build/libs/*.jar /app/app.jar
+COPY --from=build /workspace/auth-api/build/libs/*.jar /app/app.jar
 
 ENV OTEL_AGENT_ENABLED=true
 

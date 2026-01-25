@@ -12,16 +12,6 @@ spring:
   config:
     import: "optional:consul:"
 
-  cloud:
-    consul:
-      host: localhost
-      port: 8500
-      discovery:
-        register: true
-        prefer-ip-address: true
-        health-check-path: /actuator/health
-        health-check-interval: 10s
-
 jwt:
   # Secret is provided by ConsulJwtSecretProvider (KV), not from YAML
   access-exp-minutes: 15
