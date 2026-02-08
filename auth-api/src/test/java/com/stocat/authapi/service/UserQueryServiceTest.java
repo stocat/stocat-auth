@@ -1,16 +1,17 @@
 package com.stocat.authapi.service;
 
-import com.stocat.authapi.exception.AuthErrorCode;
-import com.stocat.authapi.service.dto.UserDto;
+import com.stocat.auth.core.exception.ApiException;
 import com.stocat.auth.mysql.domain.user.domain.AuthProvider;
-import com.stocat.auth.mysql.domain.user.domain.UsersEntity;
 import com.stocat.auth.mysql.domain.user.domain.UserRole;
 import com.stocat.auth.mysql.domain.user.domain.UserStatus;
+import com.stocat.auth.mysql.domain.user.domain.UsersEntity;
 import com.stocat.auth.mysql.domain.user.repository.UserRepository;
-import com.stocat.auth.core.exception.ApiException;
-import org.junit.jupiter.api.BeforeEach;
+import com.stocat.authapi.exception.AuthErrorCode;
+import com.stocat.authapi.service.dto.UserDto;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,48 +19,88 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 class UserQueryServiceTest {
 
+    @InjectMocks
+    private UserQueryService userQueryService;
+
     @Mock
     private UserRepository userRepository;
 
-    private UserQueryService queryService;
+    @Test
+    @DisplayName("ID로 유저 조회 성공")
+    void getByIdOrThrow_success() {
+        // given
+        Long userId = 1L;
+        UsersEntity user = UsersEntity.create("test", "test@test.com", "pw", AuthProvider.LOCAL, "", UserStatus.ACTIVE, UserRole.USER);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
-    @BeforeEach
-    void setUp() {
-        queryService = new UserQueryService(userRepository);
+        // when
+        UsersEntity result = userQueryService.getByIdOrThrow(userId);
+
+        // then
+        assertThat(result).isEqualTo(user);
     }
 
     @Test
-    void 이메일로_조회하면_DTO로_변환한다() {
-        UsersEntity user = UsersEntity.builder()
-                .id(1L)
-                .nickname("고냥이")
-                .email("cat@stocat.com")
-                .password("encoded")
-                .provider(AuthProvider.LOCAL)
-                .providerId("pid")
-                .status(UserStatus.ACTIVE)
-                .role(UserRole.USER)
-                .build();
-        when(userRepository.findByEmail("cat@stocat.com")).thenReturn(Optional.of(user));
+    @DisplayName("ID로 유저 조회 실패 - 유저 없음")
+    void getByIdOrThrow_fail_user_not_found() {
+        // given
+        Long userId = 1L;
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
 
-        UserDto dto = queryService.getUserByEmail("cat@stocat.com");
-
-        assertThat(dto.id()).isEqualTo(1L);
-        assertThat(dto.email()).isEqualTo("cat@stocat.com");
-        assertThat(dto.password()).isEqualTo("encoded");
-    }
-
-    @Test
-    void 존재하지_않는_회원이면_예외를_던진다() {
-        when(userRepository.findByEmail("cat@stocat.com")).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> queryService.getUserByEmail("cat@stocat.com"))
+        // when & then
+        assertThatThrownBy(() -> userQueryService.getByIdOrThrow(userId))
                 .isInstanceOf(ApiException.class)
-                .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.USER_NOT_FOUND);
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("이메일로 유저 조회 성공")
+    void getByEmailOrThrow_success() {
+        // given
+        String email = "test@test.com";
+        UsersEntity user = UsersEntity.create("test", email, "pw", AuthProvider.LOCAL, "", UserStatus.ACTIVE, UserRole.USER);
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+
+        // when
+        UsersEntity result = userQueryService.getByEmailOrThrow(email);
+
+        // then
+        assertThat(result).isEqualTo(user);
+    }
+
+    @Test
+    @DisplayName("이메일로 유저 조회 실패 - 유저 없음")
+    void getByEmailOrThrow_fail_user_not_found() {
+        // given
+        String email = "test@test.com";
+        given(userRepository.findByEmail(email)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userQueryService.getByEmailOrThrow(email))
+                .isInstanceOf(ApiException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("ID로 UserDto 조회 성공")
+    void getUserById_success() {
+        // given
+        Long userId = 1L;
+        UsersEntity user = UsersEntity.create("test", "test@test.com", "pw", AuthProvider.LOCAL, "", UserStatus.ACTIVE, UserRole.USER);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+        // when
+        UserDto result = userQueryService.getUserById(userId);
+
+        // then
+        assertThat(result.email()).isEqualTo(user.getEmail());
+        assertThat(result.nickname()).isEqualTo(user.getNickname());
     }
 }

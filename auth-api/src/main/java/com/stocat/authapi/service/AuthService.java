@@ -1,5 +1,6 @@
 package com.stocat.authapi.service;
 
+import com.stocat.authapi.controller.dto.UserSummaryResponse;
 import com.stocat.authapi.security.jwt.JwtClaimKeys;
 import com.stocat.authapi.security.jwt.JwtProvider;
 import com.stocat.authapi.controller.dto.AuthResponse;
@@ -59,5 +60,16 @@ public class AuthService {
         );
         String refresh = jwtProvider.createRefreshToken(String.valueOf(user.id()));
         return new AuthResponse(access, refresh);
+    }
+
+    /**
+     * Use case: get user summary
+     *
+     * @param userId 유저 ID
+     * @return UserSummaryResponse
+     */
+    public UserSummaryResponse getSummary(Long userId) {
+        UserDto user = queryService.getUserById(userId);
+        return UserSummaryResponse.from(user);
     }
 }

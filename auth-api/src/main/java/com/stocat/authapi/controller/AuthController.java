@@ -1,16 +1,14 @@
 package com.stocat.authapi.controller;
 
+import com.stocat.authapi.controller.dto.*;
 import com.stocat.authapi.exception.AuthErrorCode;
 import com.stocat.authapi.service.AuthService;
-import com.stocat.authapi.controller.dto.AuthErrorCodeResponse;
-import com.stocat.authapi.controller.dto.AuthResponse;
-import com.stocat.authapi.controller.dto.LoginRequest;
-import com.stocat.authapi.controller.dto.SignupRequest;
 import com.stocat.auth.core.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -42,6 +40,12 @@ public class AuthController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "자격 증명 오류")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(ApiResponse.success(authService.login(request)));
+    }
+
+    @GetMapping("/summary")
+    @Operation(summary = "내 정보 요약", description = "현재 로그인한 사용자의 간단한 정보를 조회합니다.")
+    public ResponseEntity<ApiResponse<UserSummaryResponse>> summary(@AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.success(authService.getSummary(Long.valueOf(userId))));
     }
 
     @GetMapping("/errors")
