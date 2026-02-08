@@ -1,0 +1,15 @@
+### Login request via Gateway
+# @name login
+POST http://127.0.0.1:8085/auth/login
+accept: */*
+Content-Type: application/json
+
+{
+  "email": "test1@example.com",
+  "password": "password"
+}
+
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+    client.global.set("refreshToken", response.body.data.refreshToken);
+%}

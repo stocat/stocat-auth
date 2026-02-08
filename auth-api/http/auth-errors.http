@@ -1,0 +1,3 @@
+### Get Errors
+GET http://127.0.0.1:8085/auth/errors
+accept: */*

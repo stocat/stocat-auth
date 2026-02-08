@@ -1,0 +1,5 @@
+### Get Summary
+GET http://127.0.0.1:8085/auth/summary
+accept: */*
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ0ZXN0MUBleGFtcGxlLmNvbSIsInVzZXJJZCI6MSwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NzA1NjE0MDQsImV4cCI6MTc3MDU2MTcwNH0.oaN1_R8c5lxGX_VmiJF0YN5D8nOw7kOcxdKGivkOPCo
